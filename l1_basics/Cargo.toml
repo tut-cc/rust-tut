@@ -1,0 +1,81 @@
+[package]
+name = "l1_basics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[workspace]
+members = ["xtask"]
+
+[[bin]]
+name = "00"
+path = "00_hello_world.rs"
+
+[[bin]]
+name = "10"
+path = "10_variable.rs"
+[[bin]]
+name = "11"
+path = "11_constant.rs"
+[[bin]]
+name = "12"
+path = "12_variable.rs"
+[[bin]]
+name = "13"
+path = "13_variable.rs"
+
+[[bin]]
+name = "20"
+path = "20_function.rs"
+[[bin]]
+name = "21"
+path = "21_function.rs"
+[[bin]]
+name = "22"
+path = "22_function.rs"
+
+[[bin]]
+name = "30"
+path = "30_control_flow.rs"
+[[bin]]
+name = "31"
+path = "31_control_flow.rs"
+[[bin]]
+name = "32"
+path = "32_control_flow.rs"
+[[bin]]
+name = "33"
+path = "33_control_flow.rs"
+[[bin]]
+name = "34"
+path = "34_control_flow.rs"
+[[bin]]
+name = "35"
+path = "35_control_flow.rs"
+
+[[bin]]
+name = "40"
+path = "40_primitive.rs"
+[[bin]]
+name = "41"
+path = "41_primitive.rs"
+[[bin]]
+name = "42"
+path = "42_primitive.rs"
+[[bin]]
+name = "43"
+path = "43_vec.rs"
+[[bin]]
+name = "44"
+path = "44_vec.rs"
+
+[[bin]]
+name = "50"
+path = "50_lifetime.rs"
+[[bin]]
+name = "51"
+path = "51_lifetime.rs"
+[[bin]]
+name = "52"
+path = "52_lifetime.rs"
