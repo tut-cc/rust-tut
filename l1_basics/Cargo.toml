@@ -72,10 +72,13 @@ path = "44_vec.rs"
 
 [[bin]]
 name = "50"
-path = "50_lifetime.rs"
+path = "50_ownership.rs"
 [[bin]]
 name = "51"
-path = "51_lifetime.rs"
+path = "51_ownership.rs"
 [[bin]]
 name = "52"
-path = "52_lifetime.rs"
+path = "52_borrowing.rs"
+[[bin]]
+name = "53"
+path = "53_borrowing.rs"
