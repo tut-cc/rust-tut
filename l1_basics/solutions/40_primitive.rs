@@ -8,7 +8,7 @@ fn main() {
     // ブール値は否定演算子 ! で真偽を反転できます。
     // 57が素数であるかはどうでもいいので、とりあえずグロタンディークは正しかったんだということにしてください。
     if !IS_57_PRIME {
-        println!("Grothendieck was right no matter what peopel say.");
+        println!("Grothendieck was right no matter what people say.");
     }
 
     // 数値型は整数型と浮動小数点型の2つあります。
