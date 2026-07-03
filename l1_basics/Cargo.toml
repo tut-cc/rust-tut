@@ -82,3 +82,13 @@ path = "52_borrowing.rs"
 [[bin]]
 name = "53"
 path = "53_borrowing.rs"
+
+[[bin]]
+name = "60"
+path = "60_enum.rs"
+[[bin]]
+name = "61"
+path = "61_enum.rs"
+[[bin]]
+name = "62"
+path = "62_struct.rs"
