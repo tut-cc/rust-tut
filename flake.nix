@@ -54,6 +54,16 @@
                 rust-analyzer
 
                 rust-script
+
+                (vscode-with-extensions.override {
+                  vscode = vscodium;
+                  vscodeExtensions = with vscode-extensions; [
+                    bbenoist.nix
+                    vscodevim.vim
+
+                    rust-lang.rust-analyzer
+                  ];
+                })
               ];
 
               buildInputs = guiLibs;
