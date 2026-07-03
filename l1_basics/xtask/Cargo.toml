@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cargo_metadata = "0.23.1"
+similar = "3.1.1"
+toml-span = "0.7.1"

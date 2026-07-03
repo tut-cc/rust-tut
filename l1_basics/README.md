@@ -6,7 +6,7 @@
 
 ```sh
 cd l1_basics
-cargo xtask # TODO: まだ実装途中
+cargo xtask
 ```
 
 エクササイズには二桁の数字が割り振られています。
