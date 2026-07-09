@@ -24,7 +24,7 @@ static PROJECT_DIR: LazyLock<&Path> = LazyLock::new(|| {
         .nth(1)
         .expect("Could not locate project root")
 });
-static SOLUTOINS_DIR: LazyLock<PathBuf> = LazyLock::new(|| PROJECT_DIR.join("solutions"));
+static SOLUTIONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| PROJECT_DIR.join("solutions"));
 
 fn rs_files_in_dir(read_dir: fs::ReadDir) -> Vec<PathBuf> {
     let mut rs_files: Vec<_> = read_dir
@@ -160,19 +160,23 @@ impl std::fmt::Display for ExerciseStatus {
 impl Progress {
     const FILE_NAME: &str = "progress.toml";
 
-    fn new(bin_paths: &BTreeMap<ExerciseKey, PathBuf>) -> Self {
+    fn new(version: String, bin_paths: &BTreeMap<ExerciseKey, PathBuf>) -> Self {
+        let mut exercises = BTreeMap::new();
+        for key in bin_paths.keys() {
+            exercises.insert(*key, ExerciseStatus::Untouched);
+        }
+        Progress {
+            version,
+            current: ExerciseKey::start(),
+            exercises,
+        }
+    }
+
+    fn load() -> Option<Self> {
         let progress_toml = PROJECT_DIR.join(Self::FILE_NAME);
         // NOTE: Path::exists method is not ideal because of TOCTOU concerns
         if !progress_toml.exists() {
-            let mut exercises = BTreeMap::new();
-            for key in bin_paths.keys() {
-                exercises.insert(*key, ExerciseStatus::Untouched);
-            }
-            return Progress {
-                version: "".to_string(),
-                current: ExerciseKey::start(),
-                exercises,
-            };
+            return None;
         }
 
         let content = fs::read_to_string(progress_toml).expect("Failed to read progress.toml");
@@ -208,10 +212,35 @@ impl Progress {
         let Exercises(exercises) = th.required("exercises").unwrap();
         th.finalize(None).unwrap();
 
-        Progress {
+        Some(Progress {
             version,
             current,
             exercises,
+        })
+    }
+
+    fn reset(&mut self) {
+        self.current = ExerciseKey::start();
+        for status in self.exercises.values_mut() {
+            *status = ExerciseStatus::Untouched;
+        }
+    }
+
+    fn update(&mut self, new_version: &str, bin_paths: &BTreeMap<ExerciseKey, PathBuf>) {
+        self.version = new_version.to_string();
+        for key in bin_paths.keys() {
+            self.exercises.entry(*key).or_insert_with(|| {
+                println!("Added new exercise, {key}.");
+                ExerciseStatus::Untouched
+            });
+        }
+
+        for key in self.exercises.keys() {
+            if !bin_paths.contains_key(key) {
+                eprintln!(
+                    "[WARN] progress.toml has exercise {key}, but Cargo.toml does not have one."
+                );
+            }
         }
     }
 
@@ -291,18 +320,13 @@ fn main() {
     let bin_paths =
         parse_cargo_toml(cargo_toml_value).expect("Failed to parse Cargo.toml configuration.");
 
-    let mut progress = Progress::new(&bin_paths);
-
     let version = cargo_toml_value
         .pointer("/package/version")
-        .and_then(|v| v.as_str())
+        .and_then(Value::as_str)
         .expect("package.version must be defined in Cargo.toml");
-    if progress.version.is_empty() {
-        progress.version = version.to_string();
-    } else if progress.version != version {
-        eprintln!("[WARN] `version` fields in Cargo.toml and progress.toml do not match.");
-        eprintln!("[INFO] Remove progress.toml and run `cargo xtask all`");
-    }
+
+    let mut progress =
+        Progress::load().unwrap_or_else(|| Progress::new(version.to_string(), &bin_paths));
 
     match args.next().as_deref() {
         Some("help" | "h" | "-h") => eprintln!(
@@ -318,6 +342,8 @@ COMMANDS:
     @XX            Go to XX
     all            Compile and run all
     reset          Reset progress
+    update         Update progress.toml file
+    version, v     Print version of progress.toml
     help, h, -h    Show this message
 "###,
             env!("CARGO")
@@ -331,6 +357,7 @@ COMMANDS:
             if let Some(path) = bin_paths.get(&current) {
                 if run_program(current, path) {
                     *progress.exercises.get_mut(&current).unwrap() = ExerciseStatus::Solved;
+                    println!("\nExercise {current} has been solved ✅️\n");
                     if progress.next_key().is_none() {
                         println!("\nYou've reached the end! Congratulations🎉\n");
                     }
@@ -368,6 +395,7 @@ COMMANDS:
             println!();
             if let Some(path) = bin_paths.get(&key) {
                 let status = if run_program(key, path) {
+                    println!("\nExercise {key} has been solved ✅️\n");
                     ExerciseStatus::Solved
                 } else {
                     ExerciseStatus::Partial
@@ -408,24 +436,53 @@ COMMANDS:
             println!("All programs have been checked.\n");
         }
         Some("reset") => {
-            progress.current = ExerciseKey::start();
-            for status in progress.exercises.values_mut() {
-                *status = ExerciseStatus::Untouched;
-            }
+            progress.reset();
             progress.save_to_file();
             println!("\n{}\n", progress.status());
             println!("All progress have been reset.\n");
         }
+        Some("update") => {
+            if progress.version.as_str() > version {
+                errorln(&format!(
+                    "Cargo.toml version ({version}) is older than progress.toml version ({}).",
+                    progress.version.as_str()
+                ));
+            } else {
+                if progress.version.as_str() == version {
+                    eprintln!(
+                        "[INFO] Cargo.toml and progress.toml are already at the same version."
+                    );
+                    eprintln!("[WARN] Updating exercise entries regardless.");
+                }
+                let old_version = progress.version.clone();
+                progress.update(version, &bin_paths);
+                progress.save_to_file();
+                println!("\n{}\n", progress.status());
+                println!(
+                    "progress.toml version has been updated from {old_version} to {version}.\n"
+                );
+                return;
+            };
+        }
+        Some("version" | "v") => println!("{}", progress.version.as_str()),
         Some("_dev") => check_paths(
             rs_files_in_dir(
                 fs::read_dir(PROJECT_DIR.clone()).expect("Failed to read directory information"),
             ),
             rs_files_in_dir(
-                fs::read_dir(SOLUTOINS_DIR.clone()).expect("Failed to read directory information"),
+                fs::read_dir(SOLUTIONS_DIR.clone()).expect("Failed to read directory information"),
             ),
             bin_paths,
         ),
         Some(unk) => eprintln!("Unknown command: {unk}"),
+    }
+
+    if progress.version != version {
+        eprintln!(
+            "[WARN] Cargo.toml version ({version}) and progress.toml version ({}) do not match.",
+            progress.version
+        );
+        eprintln!("[INFO] Try running `cargo xtask update`");
     }
 }
 
@@ -497,12 +554,12 @@ fn run_program(exercise_name: ExerciseKey, target_path: impl AsRef<Path>) -> boo
     println!("│  Program: {}  │", file_name_str);
     println!("╰───────────{}──╯", "─".repeat(file_name_str.len()));
 
-    let solution_path = SOLUTOINS_DIR.join(file_name_osstr);
+    let solution_path = SOLUTIONS_DIR.join(file_name_osstr);
     let output_answer = std::process::Command::new("rust-script")
         .args([solution_path.as_os_str()])
         .env("CLICOLOR_FORCE", "1")
         .output()
-        .expect("");
+        .expect("Install rust-script by running: `cargo install rust-script`");
 
     let output = std::process::Command::new(env!("CARGO"))
         .args([

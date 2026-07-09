@@ -1,6 +1,6 @@
 [package]
 name = "l1_basics"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
@@ -92,3 +92,16 @@ path = "61_enum.rs"
 [[bin]]
 name = "62"
 path = "62_struct.rs"
+
+[[bin]]
+name = "70"
+path = "70_option.rs"
+[[bin]]
+name = "71"
+path = "71_option.rs"
+[[bin]]
+name = "72"
+path = "72_result.rs"
+[[bin]]
+name = "73"
+path = "73_result.rs"
