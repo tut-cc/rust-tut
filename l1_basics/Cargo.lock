@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "l1_basics"
-version = "0.1.1"
+version = "0.1.2"
 
 [[package]]
 name = "memchr"
