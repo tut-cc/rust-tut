@@ -16,7 +16,8 @@ fn main() {
     println!("{}", role_repr(1)); // Thief
     println!("{}", role_repr(2)); // Bard
     println!("{}", role_repr(3)); // Warrior
-    println!("{}", role_repr(4)); // Unknown role
+    // 次の行をコメントアウトしてみると、標準出力されずに強制終了します。
+    //println!("{}", role_repr(4)); // Unknown role
 }
 
 fn role_repr(role: u8) -> &'static str {
