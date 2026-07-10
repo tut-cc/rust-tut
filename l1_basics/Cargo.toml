@@ -1,6 +1,6 @@
 [package]
 name = "l1_basics"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 [dependencies]
@@ -105,3 +105,16 @@ path = "72_result.rs"
 [[bin]]
 name = "73"
 path = "73_result.rs"
+
+[[bin]]
+name = "80"
+path = "80_generics.rs"
+[[bin]]
+name = "81"
+path = "81_generics.rs"
+[[bin]]
+name = "82"
+path = "82_trait.rs"
+[[bin]]
+name = "83"
+path = "83_trait.rs"
