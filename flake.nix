@@ -33,16 +33,18 @@
         {
           default =
             let
-              guiLibs = with pkgs; [
-                # Wayland
-                libxkbcommon
-                wayland
+              guiLibs =
+                with pkgs;
+                lib.optionals stdenv.hostPlatform.isLinux [
+                  # Wayland
+                  libxkbcommon
+                  wayland
 
-                # X11
-                libx11
-                libxcursor
-                libxi
-              ];
+                  # X11
+                  libx11
+                  libxcursor
+                  libxi
+                ];
             in
             pkgs.mkShell {
               strictDeps = true;
@@ -68,7 +70,9 @@
 
               buildInputs = guiLibs;
 
-              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath guiLibs;
+              LD_LIBRARY_PATH = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux (
+                pkgs.lib.makeLibraryPath guiLibs
+              );
 
               # Certain Rust tools won't work without this
               RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
