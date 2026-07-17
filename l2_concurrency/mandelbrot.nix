@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   libxkbcommon,
   libx11,
   libxcursor,
@@ -14,6 +15,14 @@ rustPlatform.buildRustPackage (
   finalAttrs:
   let
     manifest = (lib.importTOML "${finalAttrs.src}/Cargo.toml").package;
+    linuxBuildInputs = [
+      libxkbcommon
+      wayland
+
+      libx11
+      libxcursor
+      libxi
+    ];
   in
   {
     pname = manifest.name;
@@ -23,21 +32,16 @@ rustPlatform.buildRustPackage (
 
     cargoLock.lockFile = "${finalAttrs.src}/Cargo.lock";
 
-    nativeBuildInputs = [
+    nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [
       makeWrapper
       pkg-config
     ];
-    buildInputs = [
-      libxkbcommon
-      wayland
 
-      libx11
-      libxcursor
-      libxi
-    ];
-    postInstall = ''
+    buildInputs = lib.optionals stdenv.hostPlatform.isLinux linuxBuildInputs;
+
+    postInstall = lib.optionalString stdenv.hostPlatform.isLinux ''
       wrapProgram $out/bin/mandelbrot \
-        --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath finalAttrs.buildInputs}"
+        --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath linuxBuildInputs}"
     '';
 
     meta = {

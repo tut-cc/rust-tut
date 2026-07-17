@@ -7,5 +7,11 @@ iced.rsというGUIフレームワークを用います。
 ## 実行
 
 ```sh
-WAYLAND_DISPLAY= cargo run
+cargo run
+```
+
+Linuxで Wayland の問題が発生する場合、X11 に強制フォールバック:
+
+```sh
+WAYLAND_DISPLAY= WAYLAND_SOCKET= cargo run
 ```
